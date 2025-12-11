@@ -4,10 +4,10 @@ An interactive web-based tool for fitting transit time distribution models to tr
 
 ## Purpose
 
-This toolkit fits **lognormal** and **gamma** distribution models to isotopic tracer data (δ²H or δ¹⁸O) using Nelder-Mead optimization. It provides:
+This toolkit implements two modeling approaches to estimating transit times – data-based (phenomenological) and parametric (gamma/lognormal)from pulse-labeling experiments. The latter fits transit time distribution (TTD) models to tracer breakthrough curves. It implements Nelder-Mead optimization to fit lognormal and gamma distributions, providing model comparison via AIC/BIC criteria. It provides:
 
-- Tracer metrics: t_peak, t_mean, f_pulse, pore water velocity
-- Model comparison via AIC/BIC criteria
+- Data-based approach: t_peak, t_mean, f_pulse, pore water velocity
+- Parametric approach: Model comparison via AIC/BIC criteria
 - Interactive visualization of breakthrough curves and cumulative distribution functions
 
 ## Quick Start
