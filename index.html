@@ -574,15 +574,15 @@
             let bestResult = { params: [0.5, 150, 0, 1], cost: Infinity };
 
             const guesses = modelType === 'lognorm'
-              ? [[0.5, 150, 0, 1], [0.5, peakHour, 0, 1], [0.7, 200, 0, 1], [1.0, 300, 0, 1], [0.3, 100, 0, 1], [0.8, peakHour * 1.5, 0, 1]]
-              : [[2, 150, 0, Math.max(...normalizedInterp)], [2, peakHour, 0, 1], [3, 200, 0, 1], [1.5, 100, 0, 1], [2.5, peakHour * 0.5, 0, 1]];
+              ? [[0.5, 150, 0, 1], [0.5, peakHour, 0, 1], [0.7, 200, 0, 1], [1.0, 300, 0, 1]]
+              : [[2, 150, 0, Math.max(...normalizedInterp)], [2, peakHour, 0, 1], [3, 200, 0, 1], [1.5, 100, 0, 1]];
 
             for (const guess of guesses) {
-              const result = nelderMead(costFunc, guess, { maxIter: 2000, tol: 1e-10 });
+              const result = nelderMead(costFunc, guess, { maxIter: 1000, tol: 1e-8 });
               if (result.cost < bestResult.cost) bestResult = result;
             }
 
-            const refined = nelderMead(costFunc, bestResult.params, { maxIter: 3000, tol: 1e-12 });
+            const refined = nelderMead(costFunc, bestResult.params, { maxIter: 1500, tol: 1e-10 });
             if (refined.cost < bestResult.cost) bestResult = refined;
 
             const [shape, scale, delay, sf] = bestResult.params;
