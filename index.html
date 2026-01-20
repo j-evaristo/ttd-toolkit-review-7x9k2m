@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transit Time Distribution Toolkit v2.2</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, sans-serif; background: #f3f4f6; min-height: 100vh; padding: 1rem; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { background: linear-gradient(to right, #2563eb, #1e40af); color: white; padding: 1.25rem; border-radius: 0.5rem; margin-bottom: 1.25rem; }
+    .header h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .header p { opacity: 0.9; font-size: 0.875rem; }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 0; }
+    .tab { padding: 0.5rem 1rem; border: none; border-radius: 0.5rem 0.5rem 0 0; cursor: pointer; font-weight: 500; background: #e5e7eb; color: #4b5563; }
+    .tab.active { background: white; color: #2563eb; box-shadow: 0 -2px 4px rgba(0,0,0,0.1); }
+    .tab:hover:not(.active) { background: #d1d5db; }
+    .panel { background: white; border-radius: 0 0.5rem 0.5rem 0.5rem; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .hidden { display: none; }
+    .grid { display: grid; gap: 1.5rem; }
+    .grid-2 { grid-template-columns: 1fr 1fr; }
+    @media (max-width: 768px) { .grid-2 { grid-template-columns: 1fr; } }
+    label { display: block; font-size: 0.875rem; font-weight: 500; color: #374151; margin-bottom: 0.25rem; }
+    input, textarea { width: 100%; padding: 0.5rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-size: 0.875rem; }
+    input:focus, textarea:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+    textarea { font-family: monospace; resize: vertical; }
+    .btn { padding: 0.75rem 1rem; border: none; border-radius: 0.5rem; font-weight: 500; cursor: pointer; width: 100%; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-primary:disabled { background: #9ca3af; cursor: not-allowed; }
+    .btn-secondary { background: #f3f4f6; color: #374151; }
+    .btn-secondary:hover { background: #e5e7eb; }
+    .btn-success { background: #059669; color: white; }
+    .btn-success:hover { background: #047857; }
+    .info-box { padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+    .info-yellow { background: #fef3c7; border: 1px solid #fcd34d; }
+    .info-yellow label { color: #92400e; }
+    .info-blue { background: #dbeafe; border: 1px solid #93c5fd; }
+    .info-red { background: #fee2e2; border: 1px solid #fca5a5; color: #b91c1c; }
+    .info-green { background: #d1fae5; border: 1px solid #6ee7b7; }
+    .checkbox-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #dbeafe; border-radius: 0.5rem; }
+    .checkbox-row input { width: auto; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 768px) { .metrics-grid { grid-template-columns: repeat(2, 1fr); } }
+    .metric-card { background: white; padding: 0.75rem; border-radius: 0.5rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .metric-value { font-size: 1.5rem; font-weight: bold; }
+    .metric-label { font-size: 0.75rem; color: #6b7280; }
+    .text-blue { color: #2563eb; }
+    .text-green { color: #059669; }
+    .text-purple { color: #7c3aed; }
+    .text-orange { color: #ea580c; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f3f4f6; }
+    .text-right { text-align: right; }
+    .bg-blue-light { background: #dbeafe; }
+    .bg-red-light { background: #fee2e2; }
+    .chart-container { background: #f9fafb; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; }
+    .chart-title { font-weight: 500; color: #374151; margin-bottom: 0.75rem; }
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1rem; }
+    @media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+    .legend { display: flex; justify-content: center; gap: 1rem; margin-top: 0.5rem; font-size: 0.75rem; }
+    .legend-item { display: flex; align-items: center; gap: 0.25rem; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+    .legend-square { width: 12px; height: 12px; }
+    .footer { text-align: center; color: #6b7280; font-size: 0.875rem; margin-top: 1rem; }
+    .footer a { color: #2563eb; text-decoration: none; }
+    .footer a:hover { text-decoration: underline; }
+    .space-y > * + * { margin-top: 1rem; }
+    .prose { line-height: 1.6; }
+    .prose h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .prose p { font-size: 0.875rem; color: #4b5563; }
+    .prose ul { font-size: 0.875rem; color: #4b5563; padding-left: 1.5rem; }
+    .prose li { margin-bottom: 0.25rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Transit Time Distribution Toolkit v2.2</h1>
+      <p>Nelder-Mead optimization for tracer breakthrough curve analysis</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('input')">Input</button>
+      <button class="tab" onclick="showTab('results')">Results</button>
+      <button class="tab" onclick="showTab('export')">Export</button>
+      <button class="tab" onclick="showTab('about')">About</button>
+    </div>
+
+    <div class="panel">
+      <!-- INPUT TAB -->
+      <div id="tab-input" class="tab-content">
+        <div class="grid grid-2">
+          <div>
+            <label>Paste CSV Data (Date, δ²H columns)</label>
+            <textarea id="csvData" rows="14" placeholder="Date,normalized_d2H&#10;10/2/2014,58.04&#10;10/7/2014,47.31&#10;..."></textarea>
+            <button class="btn btn-secondary" style="margin-top:0.5rem" onclick="loadDemoData()">Load Demo Data (Pit 3, 15cm)</button>
+          </div>
+          <div class="space-y">
+            <div>
+              <label>Sample Name</label>
+              <input type="text" id="sampleName" value="My Sample">
+            </div>
+            <div class="info-box info-yellow">
+              <label>Reference Date (Tracer Injection)</label>
+              <input type="text" id="referenceDate" value="09/30/2014">
+              <p style="font-size:0.75rem;color:#92400e;margin-top:0.25rem">Formats: MM/DD/YYYY, YYYY-MM-DD</p>
+            </div>
+            <div>
+              <label>Sample Depth (cm)</label>
+              <input type="number" id="depth" value="15">
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="isNormalized" checked>
+              <label for="isNormalized" style="margin:0"><strong>Data is already normalized</strong> (background subtracted)</label>
+            </div>
+            <div id="rawInputs" class="hidden grid grid-2">
+              <div>
+                <label>Background δ²H (‰)</label>
+                <input type="number" id="backgroundD2H" value="-62">
+              </div>
+              <div>
+                <label>Pulse δ²H (‰)</label>
+                <input type="number" id="pulseD2H" value="152">
+              </div>
+            </div>
+            <div id="errorBox" class="info-box info-red hidden"></div>
+            <div id="progressBox" class="info-box info-blue hidden"></div>
+            <button class="btn btn-primary" id="runBtn" onclick="runAnalysis()">Run TTD Analysis</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTS TAB -->
+      <div id="tab-results" class="tab-content hidden">
+        <div id="noResults" style="text-align:center;padding:3rem;color:#6b7280">
+          <p style="font-size:1.125rem;margin-bottom:0.5rem">No results yet</p>
+          <p style="font-size:0.875rem">Go to the Input tab to load data and run analysis</p>
+        </div>
+        <div id="resultsContent" class="hidden">
+          <div class="info-box info-green" style="margin-bottom:1.5rem">
+            <h2 style="font-size:1.125rem;font-weight:bold;color:#065f46;margin-bottom:0.75rem">Data-based Approach: <span id="resultsSampleName"></span></h2>
+            <div class="metrics-grid">
+              <div class="metric-card"><div class="metric-value text-blue" id="metricTpeak">-</div><div class="metric-label">t_peak (days)</div></div>
+              <div class="metric-card"><div class="metric-value text-green" id="metricTmean">-</div><div class="metric-label">t_mean (days)</div></div>
+              <div class="metric-card"><div class="metric-value text-purple" id="metricVel">-</div><div class="metric-label">Pore Water Vel. (cm/day)</div></div>
+              <div class="metric-card"><div class="metric-value text-orange" id="metricFpulse">-</div><div class="metric-label">f_pulse</div></div>
+            </div>
+          </div>
+          <div style="margin-bottom:1.5rem">
+            <h3 style="font-weight:bold;margin-bottom:0.75rem">TTD Parametric Approach</h3>
+            <table>
+              <thead><tr><th>Model</th><th class="text-right" id="timeHeader">MTT (days)</th><th class="text-right">R²</th><th class="text-right">RMSE</th><th class="text-right">AIC</th></tr></thead>
+              <tbody>
+                <tr id="lognormRow"><td style="color:#2563eb;font-weight:500">Lognormal</td><td class="text-right" id="lnMTT">-</td><td class="text-right" id="lnR2">-</td><td class="text-right" id="lnRMSE">-</td><td class="text-right" id="lnAIC">-</td></tr>
+                <tr id="gammaRow"><td style="color:#dc2626;font-weight:500">Gamma</td><td class="text-right" id="gmMTT">-</td><td class="text-right" id="gmR2">-</td><td class="text-right" id="gmRMSE">-</td><td class="text-right" id="gmAIC">-</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="charts-grid">
+            <div class="chart-container">
+              <div class="chart-title">Breakthrough Curve</div>
+              <canvas id="btcChart"></canvas>
+            </div>
+            <div class="chart-container">
+              <div class="chart-title">Transit Time CDF</div>
+              <canvas id="cdfChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXPORT TAB -->
+      <div id="tab-export" class="tab-content hidden">
+        <div class="chart-container">
+          <h3 style="font-weight:500;margin-bottom:1rem">Export Options</h3>
+          <button class="btn btn-success" id="exportBtn" onclick="exportResults()" disabled>Download Results (CSV)</button>
+          <div id="exportSummary" style="margin-top:1rem;padding:1rem;background:white;border-radius:0.5rem;border:1px solid #e5e7eb;font-size:0.875rem" class="hidden"></div>
+        </div>
+      </div>
+
+      <!-- ABOUT TAB -->
+      <div id="tab-about" class="tab-content hidden prose">
+        <h2 style="font-size:1.25rem;font-weight:bold;margin-bottom:1rem">About TTD Toolkit</h2>
+        <div class="info-box info-blue" style="margin-bottom:1.5rem">
+          <h3>Purpose</h3>
+          <p>This toolkit implements two modeling approaches to estimating transit times – data-based (phenomenological) and parametric (gamma/lognormal)from pulse-labeling experiments. The latter fits transit time distribution (TTD) models to tracer breakthrough curves. It implements Nelder-Mead optimization to fit lognormal and gamma distributions, providing model comparison via AIC/BIC criteria.</p>
+        </div>
+        <div class="grid grid-2" style="margin-bottom:1.5rem">
+          <div class="chart-container">
+            <h3>Input Requirements</h3>
+            <ul>
+              <li>CSV with Date and δ²H columns</li>
+              <li>Reference date (tracer injection)</li>
+              <li>Sample depth (for velocity calculation)</li>
+              <li>Background/pulse δ²H if not normalized</li>
+            </ul>
+          </div>
+          <div class="chart-container">
+            <h3>Output Metrics</h3>
+            <ul>
+              <li>t_peak, t_mean, f_pulse</li>
+              <li>Pore water velocity</li>
+              <li>Model parameters (shape, scale)</li>
+              <li>R², RMSE, AIC, BIC</li>
+            </ul>
+          </div>
+        </div>
+        <div class="info-box info-yellow" style="margin-bottom:1.5rem">
+          <h3 style="color:#92400e">Citation</h3>
+          <p style="font-family:monospace;color:#92400e">Evaristo et al. (under review)</p>
+        </div>
+        <div class="chart-container">
+          <h3>Technical Notes</h3>
+          <p>This web implementation uses Nelder-Mead optimization with multi-start initialization to match scipy.optimize.curve_fit behavior. For bootstrap uncertainty analysis and publication-quality figures, use the companion Python toolkit.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">TTD Toolkit v2.2 | <a href="https://github.com/YOUR_USERNAME/ttd-toolkit">GitHub</a></div>
+  </div>
+
+  <script>
+    // ============================================================================
+    // STATE
+    // ============================================================================
+    let results = null;
+    let btcChart = null;
+    let cdfChart = null;
+
+    // ============================================================================
+    // TAB NAVIGATION
+    // ============================================================================
+    function showTab(name) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+      document.querySelector(`[onclick="showTab('${name}')"]`).classList.add('active');
+      document.getElementById('tab-' + name).classList.remove('hidden');
+    }
+
+    // Toggle raw inputs visibility
+    document.getElementById('isNormalized').addEventListener('change', function() {
+      document.getElementById('rawInputs').classList.toggle('hidden', this.checked);
+    });
+
+    // ============================================================================
+    // STATISTICAL FUNCTIONS
+    // ============================================================================
+    function gammaFunc(z) {
+      const g = 7;
+      const c = [0.99999999999980993, 676.5203681218851, -1259.1392167224028,
+        771.32342877765313, -176.61502916214059, 12.507343278686905,
+        -0.13857109526572012, 9.9843695780195716e-6, 1.5056327351493116e-7];
+      if (z < 0.5) return Math.PI / (Math.sin(Math.PI * z) * gammaFunc(1 - z));
+      z -= 1;
+      let x = c[0];
+      for (let i = 1; i < g + 2; i++) x += c[i] / (z + i);
+      const t = z + g + 0.5;
+      return Math.sqrt(2 * Math.PI) * Math.pow(t, z + 0.5) * Math.exp(-t) * x;
+    }
+
+    function lognormPdf(x, s, scale) {
+      if (x <= 0) return 0;
+      const mu = Math.log(scale);
+      return (1 / (x * s * Math.sqrt(2 * Math.PI))) * Math.exp(-Math.pow(Math.log(x) - mu, 2) / (2 * s * s));
+    }
+
+    function gammaPdf(x, k, theta) {
+      if (x <= 0 || k <= 0 || theta <= 0) return 0;
+      return (Math.pow(x, k - 1) * Math.exp(-x / theta)) / (Math.pow(theta, k) * gammaFunc(k));
+    }
+
+    function erf(x) {
+      const a1 = 0.254829592, a2 = -0.284496736, a3 = 1.421413741;
+      const a4 = -1.453152027, a5 = 1.061405429, p = 0.3275911;
+      const sign = x < 0 ? -1 : 1;
+      x = Math.abs(x);
+      const t = 1.0 / (1.0 + p * x);
+      const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-x * x);
+      return sign * y;
+    }
+
+    function lognormCdf(x, s, scale) {
+      if (x <= 0) return 0;
+      const mu = Math.log(scale);
+      return 0.5 * (1 + erf((Math.log(x) - mu) / (s * Math.sqrt(2))));
+    }
+
+    function gammaCdf(x, k, theta) {
+      if (x <= 0) return 0;
+      const steps = 200;
+      const dx = x / steps;
+      let sum = 0;
+      for (let i = 0; i < steps; i++) sum += gammaPdf(i * dx + dx/2, k, theta) * dx;
+      return Math.min(1, sum);
+    }
+
+    // ============================================================================
+    // NELDER-MEAD OPTIMIZER
+    // ============================================================================
+    function nelderMead(costFunc, initialParams, options = {}) {
+      const maxIter = options.maxIter || 1000;
+      const tol = options.tol || 1e-8;
+      const alpha = 1.0, gamma = 2.0, rho = 0.5, sigma = 0.5;
+      const n = initialParams.length;
+      
+      const simplex = [initialParams.slice()];
+      for (let i = 0; i < n; i++) {
+        const point = initialParams.slice();
+        point[i] = point[i] !== 0 ? point[i] * 1.05 : 0.00025;
+        simplex.push(point);
+      }
+      
+      let values = simplex.map(p => costFunc(p));
+      
+      for (let iter = 0; iter < maxIter; iter++) {
+        const indices = Array.from({length: n+1}, (_,i) => i).sort((a,b) => values[a] - values[b]);
+        const newSimplex = indices.map(i => simplex[i]);
+        const newValues = indices.map(i => values[i]);
+        for (let i = 0; i <= n; i++) { simplex[i] = newSimplex[i]; values[i] = newValues[i]; }
+        
+        if (values[n] - values[0] < tol) break;
+        
+        const centroid = new Array(n).fill(0);
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) centroid[j] += simplex[i][j] / n;
+        
+        const reflected = centroid.map((c, j) => c + alpha * (c - simplex[n][j]));
+        const reflectedVal = costFunc(reflected);
+        
+        if (reflectedVal >= values[0] && reflectedVal < values[n - 1]) {
+          simplex[n] = reflected; values[n] = reflectedVal; continue;
+        }
+        
+        if (reflectedVal < values[0]) {
+          const expanded = centroid.map((c, j) => c + gamma * (reflected[j] - c));
+          const expandedVal = costFunc(expanded);
+          simplex[n] = expandedVal < reflectedVal ? expanded : reflected;
+          values[n] = Math.min(expandedVal, reflectedVal);
+          continue;
+        }
+        
+        const contracted = centroid.map((c, j) => c + rho * (simplex[n][j] - c));
+        const contractedVal = costFunc(contracted);
+        if (contractedVal < values[n]) {
+          simplex[n] = contracted; values[n] = contractedVal; continue;
+        }
+        
+        for (let i = 1; i <= n; i++) {
+          for (let j = 0; j < n; j++) simplex[i][j] = simplex[0][j] + sigma * (simplex[i][j] - simplex[0][j]);
+          values[i] = costFunc(simplex[i]);
+        }
+      }
+      
+      const bestIdx = values.indexOf(Math.min(...values));
+      return { params: simplex[bestIdx], cost: values[bestIdx] };
+    }
+
+    // ============================================================================
+    // TTD MODELS
+    // ============================================================================
+    function sasLognormModel(t, s, scale, delay, scalingFactor, pulseD2H) {
+      const n = t.length, maxT = Math.max(...t);
+      const tau = Array.from({length: n}, (_, i) => (i / (n - 1)) * maxT);
+      const sasFunction = tau.map(x => lognormPdf(x, s, scale));
+      
+      const inputSignal = new Array(n).fill(0);
+      let minDiff = Infinity, delayIdx = 0;
+      for (let i = 0; i < n; i++) {
+        if (Math.abs(t[i] - delay) < minDiff) { minDiff = Math.abs(t[i] - delay); delayIdx = i; }
+      }
+      inputSignal[delayIdx] = pulseD2H;
+      
+      const result = new Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        if (inputSignal[i] === 0) continue;
+        for (let j = 0; j < n && i + j < n; j++) result[i + j] += inputSignal[i] * sasFunction[j];
+      }
+      return result.map(v => v * scalingFactor);
+    }
+
+    function sasGammaModel(t, k, scale, delay, scalingFactor, pulseD2H) {
+      const n = t.length, maxT = Math.max(...t);
+      const dt = n > 1 ? t[1] - t[0] : 1;
+      const tau = Array.from({length: n}, (_, i) => (i / (n - 1)) * maxT);
+      const sasFunction = tau.map(x => gammaPdf(x, k, scale) * dt);
+      
+      const inputSignal = new Array(n).fill(0);
+      let minDiff = Infinity, delayIdx = 0;
+      for (let i = 0; i < n; i++) {
+        if (Math.abs(t[i] - delay) < minDiff) { minDiff = Math.abs(t[i] - delay); delayIdx = i; }
+      }
+      inputSignal[delayIdx] = pulseD2H;
+      
+      const result = new Array(n).fill(0);
+      for (let i = 0; i < n; i++) {
+        if (inputSignal[i] === 0) continue;
+        for (let j = 0; j < n && i + j < n; j++) result[i + j] += inputSignal[i] * sasFunction[j];
+      }
+      return result.map(v => v * scalingFactor);
+    }
+
+    // ============================================================================
+    // UTILITIES
+    // ============================================================================
+    function parseDate(dateStr) {
+      if (!dateStr) return null;
+      dateStr = dateStr.trim();
+      if (/^\d{4}-\d{1,2}-\d{1,2}$/.test(dateStr)) {
+        const [y, m, d] = dateStr.split('-').map(Number);
+        return new Date(y, m - 1, d);
+      }
+      if (/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(dateStr)) {
+        const [m, d, y] = dateStr.split('/').map(Number);
+        return new Date(y, m - 1, d);
+      }
+      if (/^\d{1,2}\/\d{1,2}\/\d{2}$/.test(dateStr)) {
+        const parts = dateStr.split('/').map(Number);
+        return new Date(parts[2] + 2000, parts[0] - 1, parts[1]);
+      }
+      const d = new Date(dateStr);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    function daysBetween(d1, d2) { return (d1.getTime() - d2.getTime()) / 86400000; }
+
+    function interpolate(xOld, yOld, xNew) {
+      return xNew.map(x => {
+        if (x <= xOld[0]) return yOld[0];
+        if (x >= xOld[xOld.length - 1]) return yOld[yOld.length - 1];
+        let i = 0;
+        while (i < xOld.length - 1 && xOld[i + 1] < x) i++;
+        return yOld[i] + (yOld[i + 1] - yOld[i]) * (x - xOld[i]) / (xOld[i + 1] - xOld[i]);
+      });
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split('\n').filter(l => l.trim());
+      if (lines.length < 2) return [];
+      let delim = ',';
+      if (lines[1].includes('\t')) delim = '\t';
+      else if (lines[1].includes(';')) delim = ';';
+      const hdr = lines[0].toLowerCase();
+      const start = (hdr.includes('date') || hdr.includes('d2h')) ? 1 : 0;
+      return lines.slice(start).map(line => {
+        const p = line.split(delim).map(s => s.trim());
+        return { date: p[0], value: parseFloat(p[1]) };
+      }).filter(d => !isNaN(d.value) && d.date);
+    }
+
+    // ============================================================================
+    // DEMO DATA
+    // ============================================================================
+    function loadDemoData() {
+      document.getElementById('csvData').value = `Date,d2H
+7/7/2014	-62.81
+7/9/2014	-63.25333333
+7/15/2014	-63.22333333
+7/29/2014	-64.57333333
+8/5/2014	-63.74333333
+8/11/2014	-63.06333333
+9/8/2014	-63.72
+9/15/2014	-63.57
+9/22/2014	-63.40666667
+9/29/2014	-57.90666667
+10/2/2014	-3.96
+10/6/2014	-4.003333333
+10/13/2014	-36.8
+10/20/2014	-45.35666667
+10/27/2014	-50.43
+11/3/2014	-57.6
+11/10/2014	-60.91
+11/17/2014	-59.35333333
+12/1/2014	-63.70666667`;
+      document.getElementById('sampleName').value = 'Pit 3, 15cm';
+      document.getElementById('referenceDate').value = '09/30/2014';
+      document.getElementById('depth').value = '15';
+      document.getElementById('isNormalized').checked = false
+      document.getElementById('rawInputs').classList.add('hidden');
+    }
+
+    // ============================================================================
+    // MAIN ANALYSIS
+    // ============================================================================
+    function runAnalysis() {
+      const errorBox = document.getElementById('errorBox');
+      const progressBox = document.getElementById('progressBox');
+      const runBtn = document.getElementById('runBtn');
+      
+      errorBox.classList.add('hidden');
+      progressBox.classList.remove('hidden');
+      progressBox.textContent = 'Parsing data...';
+      runBtn.disabled = true;
+
+      setTimeout(() => {
+        try {
+          const csvData = document.getElementById('csvData').value;
+          const sampleName = document.getElementById('sampleName').value;
+          const referenceDate = document.getElementById('referenceDate').value;
+          const depth = parseFloat(document.getElementById('depth').value);
+          const isNormalized = document.getElementById('isNormalized').checked;
+          const backgroundD2H = parseFloat(document.getElementById('backgroundD2H').value) || -62;
+          const pulseD2H = parseFloat(document.getElementById('pulseD2H').value) || 152;
+
+          const data = parseCSV(csvData);
+          if (data.length < 3) throw new Error('Need at least 3 data points');
+
+          const refDate = parseDate(referenceDate);
+          if (!refDate) throw new Error('Invalid reference date');
+
+          const concentration = isNormalized ? data.map(d => d.value) : data.map(d => d.value - backgroundD2H);
+
+          const timeHoursOrig = data.map(d => {
+            const dt = parseDate(d.date);
+            return dt ? daysBetween(dt, refDate) * 24 : NaN;
+          });
+
+          const validIdx = timeHoursOrig.map((t, i) => (!isNaN(t) && t >= 0) ? i : -1).filter(i => i >= 0);
+          const validTimeHours = validIdx.map(i => timeHoursOrig[i]);
+          const validConc = validIdx.map(i => concentration[i]);
+
+          if (validTimeHours.length < 3) throw new Error('Need at least 3 valid data points after reference date');
+
+          progressBox.textContent = 'Interpolating data...';
+
+          const maxHours = Math.max(...validTimeHours);
+          const timeHoursRegular = Array.from({length: Math.floor(maxHours) + 1}, (_, i) => i);
+          const normalizedInterp = interpolate(validTimeHours, validConc, timeHoursRegular);
+          const normalizedPulse = pulseD2H - backgroundD2H;
+
+          const timeDays = validTimeHours.map(h => h / 24);
+          const posIdx = validConc.map((c, i) => c > 0 ? i : -1).filter(i => i >= 0);
+          const posTime = posIdx.map(i => timeDays[i]);
+          const posConc = posIdx.map(i => validConc[i]);
+
+          let peakIdx = 0, peakConc = posConc[0] || 0;
+          for (let i = 1; i < posConc.length; i++) {
+            if (posConc[i] > peakConc) { peakConc = posConc[i]; peakIdx = i; }
+          }
+          const tPeak = posTime[peakIdx] || 0;
+
+          let sumCT = 0, sumC = 0;
+          for (let i = 0; i < posConc.length; i++) { sumCT += posTime[i] * posConc[i]; sumC += posConc[i]; }
+          const tMean = sumC > 0 ? sumCT / sumC : null;
+
+          const fPulse = peakConc / normalizedPulse;
+          const poreWaterVel = (depth > 0 && tMean > 0) ? depth / tMean : null;
+
+          // Fit models
+          function fitModel(modelType) {
+            progressBox.textContent = `Fitting ${modelType} model...`;
+            const modelFunc = modelType === 'lognorm' ? sasLognormModel : sasGammaModel;
+
+            const costFunc = (params) => {
+              const [shape, scale, delay, sf] = params;
+              if (shape <= 0.01 || scale <= 0.1 || sf <= 0) return 1e15;
+              try {
+                const pred = modelFunc(timeHoursRegular, shape, scale, delay, sf, normalizedPulse);
+                let sse = 0;
+                for (let i = 0; i < normalizedInterp.length; i++) sse += Math.pow(normalizedInterp[i] - pred[i], 2);
+                return isNaN(sse) ? 1e15 : sse;
+              } catch (e) { return 1e15; }
+            };
+
+            const peakHour = timeDays[peakIdx] * 24;
+            let bestResult = { params: [0.5, 150, 0, 1], cost: Infinity };
+
+            const guesses = modelType === 'lognorm'
+              ? [[0.5, 150, 0, 1], [0.5, peakHour, 0, 1], [0.7, 200, 0, 1], [1.0, 300, 0, 1], [0.3, 100, 0, 1], [0.8, peakHour * 1.5, 0, 1]]
+              : [[2, 150, 0, Math.max(...normalizedInterp)], [2, peakHour, 0, 1], [3, 200, 0, 1], [1.5, 100, 0, 1], [2.5, peakHour * 0.5, 0, 1]];
+
+            for (const guess of guesses) {
+              const result = nelderMead(costFunc, guess, { maxIter: 2000, tol: 1e-10 });
+              if (result.cost < bestResult.cost) bestResult = result;
+            }
+
+            const refined = nelderMead(costFunc, bestResult.params, { maxIter: 3000, tol: 1e-12 });
+            if (refined.cost < bestResult.cost) bestResult = refined;
+
+            const [shape, scale, delay, sf] = bestResult.params;
+            const predicted = modelFunc(timeHoursRegular, shape, scale, delay, sf, normalizedPulse);
+
+            const n = normalizedInterp.length;
+            const mean = normalizedInterp.reduce((a, b) => a + b, 0) / n;
+            let ssRes = 0, ssTot = 0;
+            for (let i = 0; i < n; i++) {
+              ssRes += Math.pow(normalizedInterp[i] - predicted[i], 2);
+              ssTot += Math.pow(normalizedInterp[i] - mean, 2);
+            }
+
+            const r2 = 1 - ssRes / ssTot;
+            const rmse = Math.sqrt(ssRes / n);
+            const k = 4;
+            const sigma = Math.sqrt(ssRes / n);
+            let logLik = 0;
+            for (let i = 0; i < n; i++) {
+              logLik += -0.5 * Math.log(2 * Math.PI) - Math.log(sigma) - 0.5 * Math.pow((normalizedInterp[i] - predicted[i]) / sigma, 2);
+            }
+            const aic = 2 * k - 2 * logLik;
+            const bic = k * Math.log(n) - 2 * logLik;
+
+            const mtt = modelType === 'lognorm' ? (scale * Math.exp(shape * shape / 2)) / 24 : (shape * scale) / 24;
+
+            return { params: { shape, scale, delay, scalingFactor: sf }, predicted, mtt, metrics: { r2, rmse, aic, bic } };
+          }
+
+          const lognormResult = fitModel('lognorm');
+          const gammaResult = fitModel('gamma');
+
+          progressBox.textContent = 'Preparing results...';
+
+          // Store results
+          results = {
+            sampleName, lognorm: lognormResult, gamma: gammaResult,
+            bestModel: lognormResult.metrics.aic < gammaResult.metrics.aic ? 'Lognormal' : 'Gamma',
+            tracerMetrics: { tPeak, tMean, fPulse, poreWaterVelocity: poreWaterVel, peakConc, depth },
+            chartData: { validTimeHours, validConc, timeHoursRegular, lognormPred: lognormResult.predicted, gammaPred: gammaResult.predicted },
+            referenceDate
+          };
+
+          updateResultsUI();
+          progressBox.classList.add('hidden');
+          showTab('results');
+
+        } catch (e) {
+          errorBox.textContent = e.message;
+          errorBox.classList.remove('hidden');
+          progressBox.classList.add('hidden');
+        } finally {
+          runBtn.disabled = false;
+        }
+      }, 50);
+    }
+
+    // ============================================================================
+    // UPDATE UI
+    // ============================================================================
+    function updateResultsUI() {
+      if (!results) return;
+
+      document.getElementById('noResults').classList.add('hidden');
+      document.getElementById('resultsContent').classList.remove('hidden');
+
+      document.getElementById('resultsSampleName').textContent = results.sampleName;
+      document.getElementById('metricTpeak').textContent = results.tracerMetrics.tPeak.toFixed(1);
+      document.getElementById('metricTmean').textContent = results.tracerMetrics.tMean?.toFixed(2) || 'N/A';
+      document.getElementById('metricVel').textContent = results.tracerMetrics.poreWaterVelocity?.toFixed(3) || 'N/A';
+      document.getElementById('metricFpulse').textContent = results.tracerMetrics.fPulse.toFixed(2);
+
+      document.getElementById('timeHeader').textContent = results.tracerMetrics.depth > 0 ? 'Residence Time (days)' : 'MTT (days)';
+
+      const lnBest = results.bestModel === 'Lognormal';
+      document.getElementById('lognormRow').className = lnBest ? 'bg-blue-light' : '';
+      document.getElementById('gammaRow').className = !lnBest ? 'bg-red-light' : '';
+
+      document.getElementById('lnMTT').textContent = results.lognorm.mtt.toFixed(1);
+      document.getElementById('lnR2').textContent = results.lognorm.metrics.r2.toFixed(3);
+      document.getElementById('lnRMSE').textContent = results.lognorm.metrics.rmse.toFixed(2);
+      document.getElementById('lnAIC').textContent = results.lognorm.metrics.aic.toFixed(1);
+
+      document.getElementById('gmMTT').textContent = results.gamma.mtt.toFixed(1);
+      document.getElementById('gmR2').textContent = results.gamma.metrics.r2.toFixed(3);
+      document.getElementById('gmRMSE').textContent = results.gamma.metrics.rmse.toFixed(2);
+      document.getElementById('gmAIC').textContent = results.gamma.metrics.aic.toFixed(1);
+
+      // Update table with star
+      document.querySelector('#lognormRow td:first-child').innerHTML = `<span style="color:#2563eb;font-weight:500">Lognormal${lnBest ? ' ★' : ''}</span>`;
+      document.querySelector('#gammaRow td:first-child').innerHTML = `<span style="color:#dc2626;font-weight:500">Gamma${!lnBest ? ' ★' : ''}</span>`;
+
+      // Draw charts
+      drawCharts();
+
+      // Enable export
+      document.getElementById('exportBtn').disabled = false;
+      document.getElementById('exportSummary').classList.remove('hidden');
+      document.getElementById('exportSummary').innerHTML = `
+        <p><strong>Sample:</strong> ${results.sampleName}</p>
+        <p><strong>Best Model:</strong> ${results.bestModel} (AIC: ${results.bestModel === 'Lognormal' ? results.lognorm.metrics.aic.toFixed(1) : results.gamma.metrics.aic.toFixed(1)})</p>
+        <p><strong>Mean Transit Time:</strong> ${results.bestModel === 'Lognormal' ? results.lognorm.mtt.toFixed(1) : results.gamma.mtt.toFixed(1)} days</p>
+      `;
+    }
+
+    function drawCharts() {
+      const cd = results.chartData;
+
+      // Observed data points
+      const observedData = cd.validTimeHours.map((h, i) => ({ x: h / 24, y: cd.validConc[i] }));
+
+      // Model predictions (subsample for performance)
+      const step = Math.max(1, Math.floor(cd.timeHoursRegular.length / 200));
+      const lognormData = [], gammaData = [];
+      for (let i = 0; i < cd.timeHoursRegular.length; i += step) {
+        const day = cd.timeHoursRegular[i] / 24;
+        lognormData.push({ x: day, y: cd.lognormPred[i] });
+        gammaData.push({ x: day, y: cd.gammaPred[i] });
+      }
+
+      // Destroy existing charts
+      if (btcChart) btcChart.destroy();
+      if (cdfChart) cdfChart.destroy();
+
+      // BTC Chart
+      btcChart = new Chart(document.getElementById('btcChart'), {
+        type: 'scatter',
+        data: {
+          datasets: [
+            { label: 'Observed', data: observedData, backgroundColor: '#000', pointRadius: 5 },
+            { label: 'Lognormal', data: lognormData, borderColor: '#3b82f6', backgroundColor: 'transparent', type: 'line', pointRadius: 0, borderWidth: 2 },
+            { label: 'Gamma', data: gammaData, borderColor: '#dc2626', backgroundColor: 'transparent', type: 'line', pointRadius: 0, borderWidth: 2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          scales: {
+            x: { title: { display: true, text: 'Days since injection' }, type: 'linear' },
+            y: { title: { display: true, text: 'Normalized δ²H (‰)' } }
+          }
+        }
+      });
+
+      // CDF Chart
+      const maxDays = Math.max(...cd.validTimeHours) / 24;
+      const cdfLognorm = [], cdfGamma = [];
+      for (let d = 0; d <= maxDays; d += maxDays / 50) {
+        cdfLognorm.push({ x: d, y: lognormCdf(d * 24, results.lognorm.params.shape, results.lognorm.params.scale) });
+        cdfGamma.push({ x: d, y: gammaCdf(d * 24, results.gamma.params.shape, results.gamma.params.scale) });
+      }
+
+      cdfChart = new Chart(document.getElementById('cdfChart'), {
+        type: 'line',
+        data: {
+          datasets: [
+            { label: 'Lognormal', data: cdfLognorm, borderColor: '#3b82f6', backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2 },
+            { label: 'Gamma', data: cdfGamma, borderColor: '#dc2626', backgroundColor: 'transparent', pointRadius: 0, borderWidth: 2 }
+          ]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { position: 'bottom' } },
+          scales: {
+            x: { title: { display: true, text: 'Transit Time (days)' }, type: 'linear' },
+            y: { title: { display: true, text: 'Cumulative Probability' }, min: 0, max: 1 }
+          }
+        }
+      });
+    }
+
+    // ============================================================================
+    // EXPORT
+    // ============================================================================
+    function exportResults() {
+      if (!results) return;
+      const timeLabel = results.tracerMetrics.depth > 0 ? 'Residence Time' : 'MTT';
+      let csv = `TTD Analysis Results - ${results.sampleName}\n\n`;
+      csv += `Reference Date,${results.referenceDate}\nSample Depth,${results.tracerMetrics.depth} cm\n\n`;
+      csv += `TRACER METRICS\nt_peak (days),${results.tracerMetrics.tPeak.toFixed(4)}\n`;
+      csv += `t_mean (days),${results.tracerMetrics.tMean?.toFixed(4) || 'N/A'}\n`;
+      csv += `f_pulse,${results.tracerMetrics.fPulse.toFixed(4)}\n`;
+      csv += `Pore Water Velocity (cm/day),${results.tracerMetrics.poreWaterVelocity?.toFixed(4) || 'N/A'}\n\n`;
+      csv += `TTD MODEL COMPARISON\nModel,${timeLabel} (days),R²,RMSE,AIC,BIC,Shape,Scale,Scaling Factor\n`;
+      csv += `Lognormal,${results.lognorm.mtt.toFixed(1)},${results.lognorm.metrics.r2.toFixed(4)},${results.lognorm.metrics.rmse.toFixed(2)},${results.lognorm.metrics.aic.toFixed(1)},${results.lognorm.metrics.bic.toFixed(1)},${results.lognorm.params.shape.toFixed(4)},${results.lognorm.params.scale.toFixed(2)},${results.lognorm.params.scalingFactor.toFixed(2)}\n`;
+      csv += `Gamma,${results.gamma.mtt.toFixed(1)},${results.gamma.metrics.r2.toFixed(4)},${results.gamma.metrics.rmse.toFixed(2)},${results.gamma.metrics.aic.toFixed(1)},${results.gamma.metrics.bic.toFixed(1)},${results.gamma.params.shape.toFixed(4)},${results.gamma.params.scale.toFixed(2)},${results.gamma.params.scalingFactor.toFixed(2)}\n`;
+      csv += `\nBest Model (by AIC),${results.bestModel}\n`;
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `${results.sampleName.replace(/\s+/g, '_')}_TTD_results.csv`;
+      a.click();
+    }
+  </script>
+</body>
+</html>
