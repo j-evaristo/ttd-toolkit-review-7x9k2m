@@ -1,20 +1,22 @@
-# Transit Time Distribution (TTD) Toolkit v2.2
+# Transit Time Distribution (TTD) Toolkit v1.0
 
 An interactive web-based tool for fitting transit time distribution models to tracer breakthrough curves from pulse-labeling experiments.
 
 ## Purpose
 
-This toolkit implements two modeling approaches to estimating transit times – data-based (phenomenological) and parametric (gamma/lognormal)from pulse-labeling experiments. The latter fits transit time distribution (TTD) models to tracer breakthrough curves. It implements Nelder-Mead optimization to fit lognormal and gamma distributions, providing model comparison via AIC/BIC criteria. It provides:
+This toolkit fits **lognormal** and **gamma** distribution models to isotopic tracer data (δ²H or δ¹⁸O) using Nelder-Mead optimization. It provides:
 
-- **Data-based approach**: t_peak, t_mean, f_pulse, pore water velocity
-- **Parametric approach**: Model comparison via AIC/BIC criteria
+- Tracer metrics: t_peak, t_mean, f_pulse, pore water velocity
+- Model comparison via AIC/BIC criteria
 - Interactive visualization of breakthrough curves and cumulative distribution functions
 
 ## Quick Start
 
 ### Online Access
 
-Open the toolkit directly in your browser: https://j-evaristo.github.io/ttd-toolkit-review-7x9k2m/
+Open the toolkit directly in your browser:
+
+**[Launch TTD Toolkit](https://jevaristo.github.io/ttd-toolkit/)**
 
 ### Local Access
 
@@ -83,11 +85,11 @@ Download results as CSV from the Export tab for further analysis or reporting.
 | Date column | Sampling dates | Yes |
 | δ²H column | Isotope values (raw or normalized) | Yes |
 | Reference date | Tracer injection date | Yes |
-| Sample depth | Depth below surface (soils) or tree height (cm) | Yes* |
+| Sample depth | Depth below surface (cm) | Optional* |
 | Background δ²H | Pre-labeling isotope value | If not normalized |
 | Pulse δ²H | Tracer isotope value | If not normalized |
 
-*Required for pore water velocity calculation; tree height where measurement is made.
+*Required for pore water velocity calculation
 
 ## Technical Implementation
 
@@ -140,7 +142,7 @@ Tested and working in:
 
 If you use this toolkit in your research, please cite:
 
-> Evaristo et al. (under review). [Manuscript title]. [Journal].
+> Evaristo, J., Wright, C.W., Bauser, H., Knighton, J.K., Johnson, D., Kim, M. (2026). Tracer Labeling and Transit Time Modeling in Soil-Plant Systems: Perspectives and a Call for Broader Dialogue in Ecohydrology. *Ecohydrology*. DOI: [10.1002/eco.70182](https://doi.org/10.1002/eco.70182)
 
 ## Contact
 
@@ -148,4 +150,4 @@ For questions regarding the methodology, please contact the corresponding author
 
 ---
 
-*TTD Toolkit v2.2 | Developed for ecohydrological tracer analysis*
+*TTD Toolkit v1.0 | Developed for ecohydrological tracer analysis*
