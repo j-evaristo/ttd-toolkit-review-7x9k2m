@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Transit Time Distribution Toolkit v2.2</title>
+  <title>Transit Time Distribution Toolkit v1.0</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -141,7 +141,7 @@
         </div>
         <div id="resultsContent" class="hidden">
           <div class="info-box info-green" style="margin-bottom:1.5rem">
-            <h2 style="font-size:1.125rem;font-weight:bold;color:#065f46;margin-bottom:0.75rem">Data-based Approach: <span id="resultsSampleName"></span></h2>
+            <h2 style="font-size:1.125rem;font-weight:bold;color:#065f46;margin-bottom:0.75rem">Tracer Metrics: <span id="resultsSampleName"></span></h2>
             <div class="metrics-grid">
               <div class="metric-card"><div class="metric-value text-blue" id="metricTpeak">-</div><div class="metric-label">t_peak (days)</div></div>
               <div class="metric-card"><div class="metric-value text-green" id="metricTmean">-</div><div class="metric-label">t_mean (days)</div></div>
@@ -150,7 +150,7 @@
             </div>
           </div>
           <div style="margin-bottom:1.5rem">
-            <h3 style="font-weight:bold;margin-bottom:0.75rem">TTD Parametric Approach</h3>
+            <h3 style="font-weight:bold;margin-bottom:0.75rem">TTD Model Comparison</h3>
             <table>
               <thead><tr><th>Model</th><th class="text-right" id="timeHeader">MTT (days)</th><th class="text-right">R²</th><th class="text-right">RMSE</th><th class="text-right">AIC</th></tr></thead>
               <tbody>
@@ -186,7 +186,7 @@
         <h2 style="font-size:1.25rem;font-weight:bold;margin-bottom:1rem">About TTD Toolkit</h2>
         <div class="info-box info-blue" style="margin-bottom:1.5rem">
           <h3>Purpose</h3>
-          <p>This toolkit implements two modeling approaches to estimating transit times – data-based (phenomenological) and parametric (gamma/lognormal)from pulse-labeling experiments. The latter fits transit time distribution (TTD) models to tracer breakthrough curves. It implements Nelder-Mead optimization to fit lognormal and gamma distributions, providing model comparison via AIC/BIC criteria.</p>
+          <p>This toolkit fits transit time distribution (TTD) models to tracer breakthrough curves from pulse-labeling experiments. It implements Nelder-Mead optimization to fit lognormal and gamma distributions, providing model comparison via AIC/BIC criteria.</p>
         </div>
         <div class="grid grid-2" style="margin-bottom:1.5rem">
           <div class="chart-container">
@@ -210,7 +210,7 @@
         </div>
         <div class="info-box info-yellow" style="margin-bottom:1.5rem">
           <h3 style="color:#92400e">Citation</h3>
-          <p style="font-family:monospace;color:#92400e">Evaristo et al. (under review)</p>
+          <p style="font-family:monospace;color:#92400e;font-size:0.8rem">Evaristo, J., Wright, C.W., Bauser, H., Knighton, J.K., Johnson, D., Kim, M. (2026). Tracer Labeling and Transit Time Modeling in Soil-Plant Systems: Perspectives and a Call for Broader Dialogue in Ecohydrology. Ecohydrology. DOI: 10.1002/eco.70182</p>
         </div>
         <div class="chart-container">
           <h3>Technical Notes</h3>
@@ -219,7 +219,7 @@
       </div>
     </div>
 
-    <div class="footer">TTD Toolkit v2.2 | <a href="https://github.com/YOUR_USERNAME/ttd-toolkit">GitHub</a></div>
+    <div class="footer">TTD Toolkit v1.0 | <a href="https://github.com/j-evaristo/ttd-toolkit">GitHub</a> | <a href="https://doi.org/10.5281/zenodo.18318447">DOI: 10.5281/zenodo.18318447</a> | <a href="https://doi.org/10.1002/eco.70182">Evaristo et al. (2026) Ecohydrology</a></div>
   </div>
 
   <script>
@@ -453,30 +453,37 @@
     // DEMO DATA
     // ============================================================================
     function loadDemoData() {
-      document.getElementById('csvData').value = `Date,d2H
-7/7/2014	-62.81
-7/9/2014	-63.25333333
-7/15/2014	-63.22333333
-7/29/2014	-64.57333333
-8/5/2014	-63.74333333
-8/11/2014	-63.06333333
-9/8/2014	-63.72
-9/15/2014	-63.57
-9/22/2014	-63.40666667
-9/29/2014	-57.90666667
-10/2/2014	-3.96
-10/6/2014	-4.003333333
-10/13/2014	-36.8
-10/20/2014	-45.35666667
-10/27/2014	-50.43
-11/3/2014	-57.6
-11/10/2014	-60.91
-11/17/2014	-59.35333333
-12/1/2014	-63.70666667`;
+      document.getElementById('csvData').value = `Date,normalized_d2H
+10/2/2014,58.04
+10/7/2014,47.31
+10/14/2014,30.11
+10/22/2014,23.78
+10/30/2014,18.23
+11/7/2014,12.74
+11/14/2014,13.96
+11/22/2014,10.29
+12/1/2014,8.49
+12/9/2014,9.38
+12/16/2014,6.11
+1/6/2015,5.32
+1/21/2015,3.96
+2/4/2015,2.93
+2/18/2015,1.67
+3/4/2015,0.80
+3/18/2015,0.12
+4/8/2015,-0.50
+4/23/2015,0.88
+5/11/2015,0.41
+6/2/2015,1.19
+6/23/2015,0.72
+7/14/2015,2.09
+8/4/2015,0.75
+8/25/2015,0.45
+10/6/2015,0.09`;
       document.getElementById('sampleName').value = 'Pit 3, 15cm';
       document.getElementById('referenceDate').value = '09/30/2014';
       document.getElementById('depth').value = '15';
-      document.getElementById('isNormalized').checked = false
+      document.getElementById('isNormalized').checked = true;
       document.getElementById('rawInputs').classList.add('hidden');
     }
 
