@@ -138,6 +138,9 @@ Tested and working in:
 - Very large datasets (>1000 points) may slow performance
 - Requires JavaScript enabled in browser
 
+## TTD-BTC Note
+- Our transit time method is similar to Evaristo et al. (2019, Water Resources Research) paper. Briefly, under approximately steady water fluxes during tracer passage, the first temporal moment of a concentration breakthrough curve (BTC) is proportional to the first moment of the corresponding mass-flux BTC, so our concentration-based “mean transit times” can serve as useful approximate summaries of water residence or transit times. 
+
 ## Citation
 
 If you use this toolkit in your research, please cite both the paper and software:
@@ -152,7 +155,7 @@ If you use this toolkit in your research, please cite both the paper and softwar
 
 ## Contact
 
-For questions regarding the methodology, please contact the corresponding author as indicated in the associated manuscript.
+For questions regarding the methodology, please refer to the Evaristo et al. (2026, Ecohydrology) paper, or contact the corresponding author, Jaivime Evaristo.
 
 ---
 
